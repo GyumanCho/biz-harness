@@ -1,0 +1,9 @@
+# Sample classifier output to test against assertions
+# This simulates what ticket-classifier would actually produce
+
+classification:
+  category: "bug"
+  urgency: "high"
+  confidence: 0.92
+  reasoning: "Customer reports broken export feature that worked previously"
+  keywords: ["export", "CSV", "spinner", "download"]

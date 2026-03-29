@@ -1,0 +1,123 @@
+# Golden Output: UC-SAAS-03 Customer Support Ticket Processing — Happy Path
+#
+# This is a pre-verified expected output for the happy path scenario.
+# Compare generated agent outputs against this structurally, not textually.
+# Match on: field presence, value types, decision paths — not exact wording.
+
+# ─── Test Input ───────────────────────────────────────────────────────────
+
+test_input:
+  subject: "Cannot export data to CSV"
+  body: |
+    I'm trying to export my project data to CSV from the dashboard but
+    the export button shows a spinner for about 30 seconds and then
+    nothing happens. No file is downloaded. I've tried Chrome and Firefox.
+    This worked fine last week.
+  customer_context:
+    account_type: "pro"
+    tenure_months: 14
+    recent_activity: "Used export feature successfully 7 days ago"
+
+# ─── Stage 1: Ticket Classifier — Expected Output ────────────────────────
+
+ticket_classifier:
+  classification:
+    category: "bug"
+    urgency: "high"
+    confidence_range: [0.8, 1.0]  # Must be >= 0.8 for this clear bug report
+    keywords_must_include:
+      - "export"  # At least one of these must appear
+    keywords_may_include:
+      - "CSV"
+      - "spinner"
+      - "download"
+  assertions:
+    - category_must_be: "bug"
+      reason: "Customer reports broken functionality that previously worked"
+    - urgency_must_be_one_of: ["high", "critical"]
+      reason: "Feature is completely broken, blocking customer's workflow"
+    - confidence_must_be_gte: 0.8
+      reason: "Clear bug report with reproduction steps, no ambiguity"
+    - category_must_not_be: "how_to"
+      reason: "Customer knows how to use the feature — it worked before"
+
+# ─── Stage 2: KB Searcher — Expected Output ──────────────────────────────
+
+kb_searcher:
+  search_results:
+    min_results: 0  # May or may not find a match depending on KB content
+    max_results: 5
+    if_results_found:
+      relevance_score_range: [0.0, 1.0]
+      applicability_must_be_one_of:
+        - "Direct match"
+        - "Partial match"
+        - "Related"
+  assertions:
+    - must_search_for_keywords: ["export", "CSV", "download"]
+      reason: "These are the core issue terms from the ticket"
+    - must_not_fabricate_articles: true
+      reason: "KB searcher must only return actually found content"
+    - total_found_must_be_lte: 5
+      reason: "Max 5 results per spec"
+
+# ─── Stage 3: Response Generator — Expected Output ───────────────────────
+
+response_generator:
+  decision:
+    # With high classification confidence AND a clear bug report:
+    if_kb_match_gte_0_7:
+      expected_decision: "auto_respond"
+    if_kb_match_lt_0_7:
+      expected_decision: "auto_respond_with_review"
+    must_not_be: "escalate"
+    reason: "High confidence classification + non-critical urgency = no escalation"
+  response:
+    must_contain:
+      - reference_to_export_issue: true
+        reason: "Response must address the specific problem, not be generic"
+      - next_steps: true
+        reason: "Customer needs actionable guidance"
+    must_not_contain:
+      - generic_apology_only: true
+        reason: "A response that is only 'sorry for the inconvenience' adds no value"
+      - promise_of_timeline: true
+        reason: "Agents should not commit to fix timelines"
+    word_count_range: [50, 200]
+  metadata:
+    classification_confidence_gte: 0.8
+    auto_resolution: true
+  assertions:
+    - decision_must_not_be: "escalate"
+      reason: "Bug is high urgency but not critical; auto-response is appropriate"
+    - response_must_reference_specific_issue: true
+      reason: "Must mention 'export' or 'CSV' — not a template response"
+    - response_must_include_next_steps: true
+      reason: "Customer needs to know what to do next"
+
+# ─── Orchestrator — Expected Execution ────────────────────────────────────
+
+orchestrator:
+  execution:
+    agents_invoked: 3
+    parallel_phase_agents: ["ticket-classifier", "kb-searcher"]
+    synthesis_agent: "response-generator"
+    all_stages_completed: true
+  assertions:
+    - classifier_and_searcher_must_run_in_parallel: true
+      reason: "Fan-out pattern requires parallel execution for efficiency"
+    - response_generator_must_receive_both_inputs: true
+      reason: "Synthesizer needs classification AND search results"
+    - must_return_execution_summary: true
+      reason: "Orchestrator output must include execution metadata"
+
+# ─── Cross-Agent Consistency Checks ───────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - classifier_keywords_overlap_with_searcher_terms: true
+      reason: "KB search should use terms consistent with classification"
+    - response_decision_consistent_with_classification_confidence: true
+      reason: "High confidence should not lead to escalation"
+    - response_category_matches_classifier_category: true
+      reason: "Response should address a 'bug', not a 'how_to' question"

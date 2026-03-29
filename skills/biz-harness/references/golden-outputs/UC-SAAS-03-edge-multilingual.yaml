@@ -1,0 +1,70 @@
+# Golden Output: UC-SAAS-03 — Edge Case: Multilingual Ticket
+#
+# Tests agent behavior when ticket contains mixed Korean and English.
+# This is a known weak spot identified during adversarial review.
+
+test_input:
+  subject: "CSV 내보내기 안됨 - export broken"
+  body: |
+    대시보드에서 CSV export를 시도하면 spinner만 돌고 아무 반응이 없어요.
+    I tried both Chrome and Firefox. 지난주까지는 잘 됐었는데요.
+    Error message는 안 나오고 그냥 30초 후에 멈춰요.
+  customer_context:
+    account_type: "pro"
+    tenure_months: 8
+    locale: "ko-KR"
+
+# ─── ticket-classifier expected output ────────────────────────────────────
+
+ticket_classifier:
+  classification:
+    category_must_be: "bug"
+    category_must_not_be: "other"
+    urgency_must_be_one_of: ["high", "critical"]
+    confidence_range: [0.6, 1.0]
+  assertions:
+    - category_must_be: "bug"
+      reason: "Despite mixed language, symptoms clearly describe broken functionality"
+    - category_must_not_be: "other"
+      reason: "Mixed-language input must not default to 'other' — content is classifiable"
+    - urgency_must_be_one_of: ["high", "critical"]
+      reason: "Feature completely broken, matches high/critical criteria regardless of language"
+    - confidence_must_be_gte: 0.6
+      reason: "Lower threshold acceptable for multilingual input, but should still be confident"
+    - keywords_must_include_at_least_one: ["export", "CSV", "내보내기"]
+      reason: "Should extract keywords from both languages"
+
+# ─── kb-searcher expected output ──────────────────────────────────────────
+
+kb_searcher:
+  assertions:
+    - must_search_with_both_languages: true
+      reason: "Search should use both Korean and English terms for coverage"
+    - must_not_return_error_for_unicode: true
+      reason: "Korean characters must not cause search failures"
+
+# ─── response-generator expected output ───────────────────────────────────
+
+response_generator:
+  decision:
+    should_be_one_of: ["auto_respond", "auto_respond_with_review"]
+    must_not_be: "escalate"
+    reason: "Clear bug report despite mixed language — should not escalate just due to language"
+  response:
+    must_address_export_issue: true
+    language_should_match_input: true
+    reason: "Response should acknowledge the specific issue, ideally in user's language"
+  assertions:
+    - decision_must_not_be: "escalate"
+      reason: "Escalating solely due to language mixing is a bias bug"
+    - response_must_reference_export_or_csv: true
+      reason: "Must address the specific issue regardless of input language"
+
+# ─── Cross-agent consistency ──────────────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - classifier_does_not_default_to_other_for_non_english: true
+      reason: "Language should not affect classification accuracy"
+    - response_language_appropriate_for_customer_locale: true
+      reason: "ko-KR locale customer should receive appropriate response"

@@ -1,0 +1,159 @@
+# Golden Output: UC-DEV-02 Incident Response — Happy Path
+#
+# Pre-verified expected output for the happy path scenario.
+# Compare structurally: field presence, value types, decision paths.
+
+# ─── Test Input ───────────────────────────────────────────────────────────
+
+test_input:
+  alert:
+    type: "cpu_utilization"
+    severity: "critical"
+    service: "order-processing-api"
+    cluster: "prod-us-east-1"
+    metric_value: 94.7
+    threshold: 80.0
+    triggered_at: "2026-03-29T14:32:00Z"
+    duration_minutes: 8
+  environment:
+    recent_deployments:
+      - service: "order-processing-api"
+        version: "v2.14.3"
+        deployed_at: "2026-03-29T14:18:00Z"
+        deployed_by: "ci-pipeline"
+        previous_version: "v2.14.2"
+        commit_sha: "a1b2c3d4"
+        changelog: "Added batch processing for bulk order imports"
+    active_incidents: []
+    service_dependencies:
+      - "postgres-primary"
+      - "redis-cache"
+      - "payment-gateway"
+
+# ─── Stage 1: Alert Triage Agent — Expected Output ────────────────────────
+
+alert_triage_agent:
+  triage_result:
+    alert_valid_must_be: true
+    severity_must_be: "critical"
+    service_must_be: "order-processing-api"
+    is_duplicate_must_be: false
+    is_flapping_must_be: false
+  impact_assessment:
+    affected_service_must_be: "order-processing-api"
+    user_facing_must_be: true
+    blast_radius_must_include: ["order-processing-api"]
+    blast_radius_may_include: ["payment-gateway"]
+    estimated_impact_must_be_one_of: ["degraded_performance", "partial_outage"]
+  assertions:
+    - alert_must_not_be_suppressed: true
+      reason: "CPU at 94.7% exceeds 80% threshold by significant margin; not a transient spike"
+    - must_check_for_duplicate_alerts: true
+      reason: "Deduplication prevents redundant incident workflows"
+    - must_assess_user_facing_impact: true
+      reason: "Order processing is customer-facing; impact determines escalation urgency"
+    - severity_must_remain_critical: true
+      reason: "94.7% CPU with 8-minute duration is a genuine critical alert, not a false positive"
+    - must_identify_affected_dependencies: true
+      reason: "Downstream services may be impacted by degraded order processing"
+
+# ─── Stage 2: Correlation Engine — Expected Output ───────────────────────
+
+correlation_engine:
+  correlation_result:
+    root_cause_hypothesis_must_include: "recent_deployment"
+    deployment_correlated_must_be: true
+    correlated_deployment:
+      service_must_be: "order-processing-api"
+      version_must_be: "v2.14.3"
+      time_gap_minutes_must_be_lte: 20  # Alert at 14:32, deploy at 14:18 = 14 min gap
+    confidence_range: [0.7, 1.0]
+  timeline:
+    events_min: 2  # At least the deployment and the alert
+    must_include_deployment_event: true
+    must_include_alert_event: true
+    chronological_order_must_be: true
+  additional_signals:
+    memory_checked: true
+    error_rate_checked: true
+    latency_checked: true
+  assertions:
+    - must_correlate_with_recent_deployment: true
+      reason: "Deployment 14 minutes before alert onset is the strongest causal signal"
+    - correlation_confidence_must_be_gte_0_7: true
+      reason: "14-minute gap between deploy and CPU spike is a strong temporal correlation"
+    - must_build_event_timeline: true
+      reason: "Timeline is essential for post-incident review and RCA"
+    - must_check_additional_metrics: true
+      reason: "CPU spike alone is insufficient; memory, error rate, and latency provide full picture"
+    - must_not_attribute_to_external_cause_without_evidence: true
+      reason: "Recent deployment is the simplest explanation; Occam's razor applies"
+
+# ─── Stage 3: Remediation Agent — Expected Output ────────────────────────
+
+remediation_agent:
+  action_taken:
+    type_must_be: "auto_rollback"
+    target_service_must_be: "order-processing-api"
+    rolled_back_from_must_be: "v2.14.3"
+    rolled_back_to_must_be: "v2.14.2"
+    rollback_initiated_must_be: true
+    rollback_successful_must_be: true
+  verification:
+    cpu_post_rollback_must_be_below_threshold: true
+    service_health_check_must_pass: true
+    dependency_health_checked: true
+  incident_record:
+    incident_id_must_be_non_empty: true
+    status_must_be: "resolved"
+    resolution_must_be: "auto_rollback"
+    duration_minutes_must_be_lte: 30
+    notification_sent_must_be: true
+    notification_channels_must_include: ["slack", "pagerduty"]
+  assertions:
+    - action_must_be_auto_rollback: true
+      reason: "High confidence deployment correlation with critical CPU alert warrants automated rollback"
+    - must_rollback_to_previous_version: true
+      reason: "v2.14.2 was the last known good version before the incident"
+    - must_verify_recovery_after_rollback: true
+      reason: "Rollback is not complete until metrics confirm recovery below threshold"
+    - must_create_incident_record: true
+      reason: "All incidents require a formal record for tracking and post-mortem"
+    - must_notify_on_call_team: true
+      reason: "Even auto-resolved incidents require human awareness for follow-up"
+    - must_not_rollback_unrelated_services: true
+      reason: "Blast radius must be contained to the correlated service only"
+
+# ─── Orchestrator — Expected Execution ────────────────────────────────────
+
+orchestrator:
+  execution:
+    stages_completed: 3
+    stages_total: 3
+    all_stages_must_complete: true
+  assertions:
+    - must_execute_stages_in_order: ["alert-triage-agent", "correlation-engine", "remediation-agent"]
+      reason: "Pipeline pattern: triage validates alert, correlation identifies cause, remediation acts"
+    - must_not_skip_correlation: true
+      reason: "Blind remediation without root cause analysis risks incorrect action"
+    - must_not_skip_triage: true
+      reason: "Acting on invalid or duplicate alerts wastes resources and causes noise"
+    - remediation_must_receive_correlation_output: true
+      reason: "Remediation action depends on identified root cause and confidence level"
+    - total_response_time_must_be_lte_30_minutes: true
+      reason: "Critical incidents require resolution within SLA window"
+
+# ─── Cross-Agent Consistency Checks ───────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - triage_service_matches_correlation_service: true
+      reason: "Correlation must investigate the same service that triggered the alert"
+    - correlation_deployment_version_matches_rollback_target: true
+      reason: "Remediation must roll back the exact version identified by correlation"
+    - triage_severity_justifies_auto_rollback: true
+      reason: "Only critical severity with high correlation confidence should trigger auto-rollback"
+    - remediation_verification_confirms_triage_metric_recovery: true
+      reason: "Post-rollback CPU must drop below the same threshold that triggered the original alert"
+    - incident_record_references_all_stages: true
+      reason: "Incident record must capture triage, correlation, and remediation details for post-mortem"

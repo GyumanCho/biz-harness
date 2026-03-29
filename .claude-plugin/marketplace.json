@@ -1,0 +1,15 @@
+{
+  "title": "BizHarness - Business Use-Case Agent Team Generator",
+  "tagline": "From business use cases to validated agent teams with QA scoring",
+  "category": "agent-teams",
+  "icon": "briefcase",
+  "tags": [
+    "agent-teams",
+    "business-automation",
+    "qa-validation",
+    "use-case-driven"
+  ],
+  "compatibility": {
+    "claude-code": ">=1.0.0"
+  }
+}

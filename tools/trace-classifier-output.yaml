@@ -1,0 +1,6 @@
+classification:
+  category: "bug"
+  urgency: "high"
+  confidence: 0.95
+  reasoning: "A previously working export feature is now silently failing across multiple browsers for a paying Pro user, blocking data access workflows."
+  keywords: ["export", "CSV", "spinner", "no download", "dashboard", "Chrome", "Firefox", "regression"]

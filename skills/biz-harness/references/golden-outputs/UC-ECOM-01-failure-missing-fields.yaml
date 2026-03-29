@@ -1,0 +1,72 @@
+# Golden Output: UC-ECOM-01 — Failure Scenario: Missing Required Fields
+#
+# Tests graceful failure when seller submits incomplete product data.
+# The system should reject cleanly, not crash or produce garbage.
+
+test_input:
+  raw_product_data: |
+    Color: Red
+    Features: Waterproof, lightweight
+
+# Note: Missing ALL required fields (name, price, images)
+
+# ─── data-normalizer expected output ──────────────────────────────────────
+
+data_normalizer:
+  validation:
+    status_must_be: "fail"
+    missing_required_must_include: ["product_name", "price", "images"]
+  assertions:
+    - status_must_be: "fail"
+      reason: "All three required fields (name, price, images) are missing"
+    - must_not_crash_or_return_empty: true
+      reason: "Agent should return structured error, not empty response"
+    - missing_required_must_list_all_three: true
+      reason: "Error report must identify all missing fields, not just the first one"
+    - must_not_fabricate_values: true
+      reason: "Agent must not invent a product name, price, or image URL"
+    - optional_fields_still_extracted: true
+      reason: "Color and features should still be captured even though required fields are missing"
+
+# ─── Pipeline should stop ─────────────────────────────────────────────────
+
+orchestrator:
+  execution:
+    must_stop_after_stage_1: true
+    content_generator_must_not_run: true
+    qa_checker_must_not_run: true
+  pipeline_result:
+    status_must_be: "failed"
+    stages_completed_must_be: 1
+  assertions:
+    - must_not_proceed_to_content_generation: true
+      reason: "Cannot generate listing content without name, price, or images"
+    - must_report_failure_to_user: true
+      reason: "User must know what's missing so they can fix and resubmit"
+    - error_message_must_list_missing_fields: true
+      reason: "Actionable error: tell user exactly what to add"
+    - must_not_return_partial_listing: true
+      reason: "A listing without name/price/images is worse than no listing"
+
+# ─── Tier A assertions for verify_tier_a.py ───────────────────────────────
+
+tier_a_assertions_file:
+  assertions:
+    - type: yaml_valid
+    - type: field_exists
+      path: "validation"
+    - type: field_exists
+      path: "validation.status"
+    - type: equals
+      path: "validation.status"
+      value: "fail"
+    - type: field_exists
+      path: "validation.missing_required"
+    - type: not_empty
+      path: "validation.missing_required"
+    - type: is_type
+      path: "validation.missing_required"
+      expected: list
+    - type: min_count
+      path: "validation.missing_required"
+      value: 3

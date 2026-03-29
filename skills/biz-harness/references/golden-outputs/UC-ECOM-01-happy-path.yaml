@@ -1,0 +1,137 @@
+# Golden Output: UC-ECOM-01 Product Listing Pipeline — Happy Path
+#
+# Pre-verified expected output for the happy path scenario.
+# Compare structurally: field presence, value types, decision paths.
+
+# ─── Test Input ───────────────────────────────────────────────────────────
+
+test_input:
+  raw_product_data: |
+    Name: Sony WH-1000XM5 wireless noise cancelling headphones
+    Price: $349.99
+    Brand: Sony
+    Color: Black
+    Weight: 250g
+    Battery: 30 hours
+    Features: Active noise cancelling, LDAC, Multipoint connection
+    Images: https://example.com/xm5-front.jpg, https://example.com/xm5-side.jpg, https://example.com/xm5-case.jpg
+
+# ─── Stage 1: Data Normalizer — Expected Output ──────────────────────────
+
+data_normalizer:
+  normalized_product:
+    name:
+      must_be_non_empty: true
+      must_not_contain_html: true
+      max_length: 200
+    price:
+      amount: 349.99
+      currency: "USD"
+      amount_must_be_positive: true
+    images:
+      min_count: 1  # Required: at least 1
+      actual_expected: 3
+    attributes:
+      brand_must_be: "Sony"
+      weight_must_be_in_grams: 250
+  validation:
+    status_must_be: "pass"
+    missing_required_must_be_empty: true
+    reason: "All required fields (name, price, images) are present"
+  assertions:
+    - status_must_be: "pass"
+      reason: "All required fields present in input"
+    - price_must_not_be_modified: true
+      reason: "Normalizer must never change the actual price"
+    - weight_must_be_converted_to_grams: true
+      reason: "Spec requires gram normalization — input is already in grams"
+    - must_not_add_fields_not_in_input: true
+      reason: "Normalizer extracts and normalizes, does not invent data"
+
+# ─── Stage 2: Content Generator — Expected Output ────────────────────────
+
+content_generator:
+  listing_content:
+    title:
+      max_length: 80
+      must_contain_brand: true
+      must_contain_product_type: true
+      example_format: "[Sony] [Headphones] [Key Feature] [Variant]"
+    description:
+      short:
+        max_length: 160
+        must_be_non_empty: true
+      full:
+        word_count_range: [150, 300]
+        must_mention: ["noise cancelling", "wireless"]
+        must_not_contain: ["best in class", "#1", "unbeatable"]
+    tags:
+      min_count: 3
+      max_count: 10
+      must_include_broad: true   # e.g., "headphones", "audio"
+      must_include_specific: true # e.g., "noise-cancelling", "wireless-headphones"
+    category_suggestion:
+      must_be_non_empty: true
+  assertions:
+    - title_length_lte_80: true
+      reason: "Marketplace title length limit"
+    - description_word_count_gte_150: true
+      reason: "Minimum content depth for SEO"
+    - no_unsupported_claims: true
+      reason: "Cannot claim 'best' without certification evidence"
+    - tags_count_between_3_and_10: true
+      reason: "Too few = low discoverability, too many = diluted relevance"
+    - must_not_copy_competitor_descriptions: true
+      reason: "Original content requirement"
+
+# ─── Stage 3: QA Checker — Expected Output ───────────────────────────────
+
+qa_checker:
+  qa_result:
+    status_must_be: "approved"
+    reason: "Clean input, well-known product, standard listing"
+    checks_passed_must_equal_checks_total: true
+    issues_must_be_empty: true
+  assertions:
+    - title_length_check_must_pass: true
+      reason: "Sony product name within 80 char limit"
+    - description_length_check_must_pass: true
+      reason: "Generated description should be 150-300 words"
+    - prohibited_words_check_must_pass: true
+      reason: "No superlatives in normalized Sony product data"
+    - image_count_check_must_pass: true
+      reason: "3 images provided, exceeds minimum of 1"
+    - status_must_not_be: "rejected"
+      reason: "No blockers expected for this clean input"
+
+# ─── Orchestrator — Expected Execution ────────────────────────────────────
+
+orchestrator:
+  pipeline_result:
+    status_must_be: "published"
+    revision_rounds: 0
+    reason: "Clean input should pass QA on first attempt"
+  execution:
+    stages_completed: 3
+    stages_total: 3
+    all_stages_must_complete: true
+  assertions:
+    - must_execute_stages_in_order: ["data-normalizer", "content-generator", "listing-qa-checker"]
+      reason: "Pipeline pattern requires sequential execution"
+    - must_not_skip_qa_stage: true
+      reason: "QA is mandatory, even for clean input"
+    - revision_rounds_must_be_0: true
+      reason: "Clean Sony product data should not trigger QA rejection"
+
+# ─── Cross-Agent Consistency Checks ───────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - normalizer_price_equals_listing_price: true
+      reason: "Price must flow through unchanged"
+    - normalizer_brand_appears_in_title: true
+      reason: "Brand from normalization should be used in title generation"
+    - content_tags_match_category_suggestion: true
+      reason: "Tags and category should be semantically aligned"
+    - qa_checks_cover_content_generator_output: true
+      reason: "QA must validate what content generator produced"

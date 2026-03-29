@@ -1,0 +1,157 @@
+# Golden Output: UC-MEDIA-01 Content Production Pipeline — Happy Path
+#
+# Pre-verified expected output for the happy path scenario.
+# Compare structurally: field presence, value types, decision paths.
+
+# ─── Test Input ───────────────────────────────────────────────────────────
+
+test_input:
+  content_brief:
+    title: "10 Proven Strategies for Remote Work Productivity"
+    content_type: "blog_post"
+    target_audience: "remote workers and hybrid team managers"
+    word_count_target: 1500
+    tone: "professional yet approachable"
+    primary_keyword: "remote work productivity"
+    secondary_keywords:
+      - "work from home tips"
+      - "remote team management"
+      - "home office setup"
+    publication: "TechPulse Blog"
+    deadline: "2026-04-05"
+    brand_guidelines:
+      voice: "authoritative but conversational"
+      avoid_topics: ["political commentary", "specific product endorsements"]
+      style_guide: "AP Style"
+
+# ─── Stage 1: Research Agent — Expected Output ────────────────────────────
+
+research_agent:
+  research_output:
+    sources_found_min: 5
+    sources_found_max: 15
+    source_types_must_include:
+      - "study"       # At least one research study or report
+      - "article"     # At least one industry article
+    recency_threshold_years: 3  # Sources should be from last 3 years
+  topic_analysis:
+    subtopics_min: 5
+    subtopics_must_include_at_least_one_of:
+      - "time management"
+      - "communication tools"
+      - "workspace setup"
+      - "work-life balance"
+    competitor_content_reviewed_min: 3
+  assertions:
+    - must_find_at_least_5_sources: true
+      reason: "1500-word blog post requires substantive research backing"
+    - must_include_data_backed_sources: true
+      reason: "Credibility requires at least one study or statistical source"
+    - sources_must_be_recent: true
+      reason: "Remote work landscape changed significantly post-2020; outdated sources reduce relevance"
+    - must_identify_content_gaps: true
+      reason: "Differentiation requires knowing what competitors already cover"
+    - must_not_include_paywalled_content_as_primary: true
+      reason: "Writers need accessible sources for fact-checking"
+
+# ─── Stage 2: Content Writer — Expected Output ───────────────────────────
+
+content_writer:
+  draft:
+    word_count_range: [1350, 1650]  # +/- 10% of target
+    sections_min: 5
+    must_have_introduction: true
+    must_have_conclusion: true
+    must_include_subheadings: true
+    subheading_count_min: 4
+  seo_elements:
+    primary_keyword_density_range: [0.5, 2.0]  # Percentage
+    primary_keyword_in_title: true
+    primary_keyword_in_first_paragraph: true
+    meta_description:
+      must_be_non_empty: true
+      max_length: 160
+      must_contain_primary_keyword: true
+  tone_compliance:
+    matches_brief_tone: true
+    avoids_prohibited_topics: true
+    follows_style_guide: true
+  assertions:
+    - word_count_within_10_percent_of_target: true
+      reason: "Brief specifies 1500 words; significant deviation indicates scope drift"
+    - must_include_actionable_strategies: true
+      reason: "Title promises '10 Proven Strategies'; content must deliver numbered, concrete tips"
+    - must_not_use_prohibited_topics: true
+      reason: "Brand guidelines explicitly ban political commentary and product endorsements"
+    - must_follow_ap_style: true
+      reason: "Brief specifies AP Style as the style guide"
+    - primary_keyword_must_appear_in_title_and_first_paragraph: true
+      reason: "Basic SEO requirement for target keyword placement"
+    - must_cite_research_sources: true
+      reason: "Claims and statistics must reference sources provided by research agent"
+
+# ─── Stage 3: Editorial Reviewer — Expected Output ───────────────────────
+
+editorial_reviewer:
+  review_result:
+    status_must_be: "approved"
+    reason: "Well-researched draft matching brief requirements with clean prose"
+    revision_required: false
+  quality_scores:
+    readability_score_min: 60  # Flesch reading ease
+    grammar_issues_max: 2     # Minor issues acceptable
+    factual_accuracy_must_be: "verified"
+    brand_compliance_must_be: "pass"
+  checks:
+    tone_check_must_pass: true
+    seo_check_must_pass: true
+    length_check_must_pass: true
+    plagiarism_check_must_pass: true
+    fact_check_must_pass: true
+  assertions:
+    - status_must_be: "approved"
+      reason: "Clean brief, professional topic, competent writer output should pass first review"
+    - plagiarism_check_must_pass: true
+      reason: "All content must be original; flagged plagiarism blocks publication"
+    - readability_must_be_gte_60: true
+      reason: "Professional yet approachable tone requires accessible reading level"
+    - must_verify_all_statistics: true
+      reason: "Any cited numbers or percentages must trace back to research sources"
+    - status_must_not_be: "rejected"
+      reason: "No blockers expected for a well-structured brief on a standard topic"
+
+# ─── Orchestrator — Expected Execution ────────────────────────────────────
+
+orchestrator:
+  pipeline_result:
+    status_must_be: "ready_for_publication"
+    revision_rounds: 0
+    reason: "Clear brief with standard topic should produce publishable content on first pass"
+  execution:
+    stages_completed: 3
+    stages_total: 3
+    all_stages_must_complete: true
+  assertions:
+    - must_execute_stages_in_order: ["research-agent", "content-writer", "editorial-reviewer"]
+      reason: "Pipeline pattern: research informs writing, writing precedes review"
+    - must_not_skip_research: true
+      reason: "Research is mandatory to ensure factual, well-sourced content"
+    - must_not_skip_editorial_review: true
+      reason: "No content publishes without editorial approval"
+    - revision_rounds_must_be_0: true
+      reason: "Straightforward brief on common topic should not trigger revision loops"
+
+# ─── Cross-Agent Consistency Checks ───────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - research_sources_cited_in_draft: true
+      reason: "Writer must reference sources that research agent discovered"
+    - draft_tone_matches_brief_tone: true
+      reason: "Writer tone and reviewer tone assessment must align with brief specification"
+    - seo_keywords_from_brief_present_in_draft: true
+      reason: "Primary and secondary keywords from brief must flow through to content"
+    - reviewer_checks_cover_writer_output: true
+      reason: "Editorial review must validate all dimensions of the written draft"
+    - research_subtopics_reflected_in_draft_sections: true
+      reason: "Identified subtopics should appear as sections or strategies in the draft"

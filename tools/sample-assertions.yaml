@@ -1,0 +1,50 @@
+# Sample Tier A assertion file for UC-SAAS-03 ticket-classifier output
+# Usage: python verify_tier_a.py classifier_output.yaml sample-assertions.yaml
+
+assertions:
+  - type: yaml_valid
+
+  - type: field_exists
+    path: "classification"
+
+  - type: field_exists
+    path: "classification.category"
+
+  - type: field_exists
+    path: "classification.urgency"
+
+  - type: field_exists
+    path: "classification.confidence"
+
+  - type: field_exists
+    path: "classification.reasoning"
+
+  - type: field_exists
+    path: "classification.keywords"
+
+  - type: one_of
+    path: "classification.category"
+    values: ["bug", "feature_request", "how_to", "billing", "account", "other"]
+
+  - type: one_of
+    path: "classification.urgency"
+    values: ["critical", "high", "medium", "low"]
+
+  - type: range
+    path: "classification.confidence"
+    min: 0.0
+    max: 1.0
+
+  - type: is_type
+    path: "classification.confidence"
+    expected: float
+
+  - type: is_type
+    path: "classification.keywords"
+    expected: list
+
+  - type: not_empty
+    path: "classification.reasoning"
+
+  - type: not_empty
+    path: "classification.keywords"

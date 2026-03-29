@@ -1,0 +1,6 @@
+# Deliberately bad output to test assertion failures
+classification:
+  category: "unknown_category"
+  urgency: "high"
+  confidence: 1.5
+  keywords: []

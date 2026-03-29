@@ -1,0 +1,141 @@
+# Golden Output: UC-FIN-01 KYC/AML Screening — Happy Path
+#
+# Pre-verified expected output for the happy path scenario.
+# Compare structurally: field presence, value types, decision paths.
+
+# ─── Test Input ───────────────────────────────────────────────────────────
+
+test_input:
+  applicant:
+    full_name: "Elena Vasquez"
+    date_of_birth: "1988-03-14"
+    nationality: "US"
+    residence_country: "US"
+    occupation: "Software Engineer"
+    employer: "Acme Corp"
+    annual_income: 145000
+    source_of_funds: "employment_salary"
+  identity_document:
+    type: "passport"
+    number: "567284910"
+    issuing_country: "US"
+    expiry_date: "2029-11-22"
+    document_images:
+      - "https://example.com/docs/vasquez-passport-front.jpg"
+      - "https://example.com/docs/vasquez-passport-back.jpg"
+  account_request:
+    type: "individual_brokerage"
+    initial_deposit: 25000
+    currency: "USD"
+
+# ─── Stage 1: Document Verifier — Expected Output ─────────────────────────
+
+document_verifier:
+  verification_result:
+    document_type_must_be: "passport"
+    issuing_country_must_be: "US"
+    expiry_status_must_be: "valid"
+    mrz_check_must_be: "pass"
+    photo_match_must_be: "pass"
+    tampering_detected_must_be: false
+  extracted_fields:
+    name_must_match_applicant: true
+    dob_must_match_applicant: true
+    document_number_must_be: "567284910"
+  assertions:
+    - expiry_must_be_in_future: true
+      reason: "Passport expires 2029-11-22, well beyond current date"
+    - must_not_flag_as_expired: true
+      reason: "Valid passport should not trigger expiry rejection"
+    - must_extract_all_required_fields: true
+      reason: "Name, DOB, document number, expiry are mandatory extractions"
+    - must_not_fabricate_fields: true
+      reason: "Verifier must only return data present in the document"
+
+# ─── Stage 2: Risk Scorer — Expected Output ───────────────────────────────
+
+risk_scorer:
+  risk_assessment:
+    overall_score_range: [0, 30]  # Low risk: 0-30 on 0-100 scale
+    risk_level_must_be: "low"
+    factors:
+      nationality_risk_must_be: "low"
+      residence_risk_must_be: "low"
+      pep_status_must_be: false
+      sanctions_match_must_be: false
+      adverse_media_must_be: false
+      source_of_funds_risk_must_be: "low"
+  screening_checks:
+    sanctions_lists_checked_min: 3  # OFAC, EU, UN at minimum
+    pep_database_checked: true
+    adverse_media_checked: true
+  assertions:
+    - risk_level_must_be: "low"
+      reason: "US citizen, salaried employment, no sanctions/PEP hits"
+    - sanctions_match_must_be_false: true
+      reason: "Common name with no matches on any sanctions list"
+    - pep_status_must_be_false: true
+      reason: "Software engineer at private company, not a political figure"
+    - must_check_at_least_3_sanctions_lists: true
+      reason: "Regulatory compliance requires OFAC, EU, and UN screening minimum"
+    - overall_score_must_be_lte_30: true
+      reason: "Low-risk profile should not exceed threshold for enhanced due diligence"
+
+# ─── Stage 3: Decision Engine — Expected Output ───────────────────────────
+
+decision_engine:
+  decision:
+    outcome_must_be: "auto_approved"
+    reason: "Low risk score, valid identity document, no screening flags"
+    must_not_be: "manual_review"
+    must_not_be_rejected: true
+  approval_details:
+    account_type_must_be: "individual_brokerage"
+    tier_assigned_must_be_one_of: ["standard", "full_access"]
+    ongoing_monitoring_frequency_must_be: "standard"
+    next_review_date_must_be_within_months: 12
+  notification:
+    applicant_notified: true
+    notification_must_include_account_type: true
+    notification_must_not_include_risk_score: true
+  assertions:
+    - outcome_must_be: "auto_approved"
+      reason: "All checks passed with low risk — no need for manual review"
+    - must_not_require_enhanced_due_diligence: true
+      reason: "EDD is only triggered for medium/high risk profiles"
+    - must_assign_monitoring_schedule: true
+      reason: "All approved accounts require ongoing transaction monitoring"
+    - notification_must_not_leak_internal_scores: true
+      reason: "Risk scores and screening details are internal only"
+    - must_record_audit_trail: true
+      reason: "Regulatory compliance requires full decision audit log"
+
+# ─── Orchestrator — Expected Execution ────────────────────────────────────
+
+orchestrator:
+  execution:
+    stages_completed: 3
+    stages_total: 3
+    all_stages_must_complete: true
+  assertions:
+    - must_execute_stages_in_order: ["document-verifier", "risk-scorer", "decision-engine"]
+      reason: "Pipeline pattern: document must be verified before risk scoring, risk score needed for decision"
+    - must_not_skip_risk_scoring: true
+      reason: "Risk scoring is mandatory even for seemingly low-risk applicants"
+    - must_not_skip_document_verification: true
+      reason: "Identity verification is a regulatory requirement"
+    - decision_engine_must_receive_both_inputs: true
+      reason: "Decision requires both document verification result and risk score"
+
+# ─── Cross-Agent Consistency Checks ───────────────────────────────────────
+
+cross_agent:
+  assertions:
+    - verifier_name_matches_risk_scorer_subject: true
+      reason: "Risk scoring must be performed on the same identity that was verified"
+    - risk_score_consistent_with_decision_outcome: true
+      reason: "Low risk score must lead to auto-approval, not manual review"
+    - document_validity_reflected_in_decision: true
+      reason: "A passed document verification should not result in rejection"
+    - sanctions_check_completed_before_decision: true
+      reason: "Decision engine must not approve without confirmed sanctions screening"

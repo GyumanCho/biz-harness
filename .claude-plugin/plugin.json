@@ -1,0 +1,18 @@
+{
+  "name": "biz-harness",
+  "version": "1.4.0",
+  "description": "Business use-case driven agent team generator with tiered QA assertions and adversarial review",
+  "author": "jude",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agent-teams",
+    "business",
+    "use-case",
+    "qa",
+    "harness",
+    "orchestrator"
+  ],
+  "skills": [
+    "skills/biz-harness"
+  ]
+}
