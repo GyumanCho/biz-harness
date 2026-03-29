@@ -47,7 +47,7 @@ classification:
 python3 tools/verify_tier_a.py trace-classifier-output.yaml sample-assertions.yaml
 ```
 
-**Output:**
+**Output (verbatim from script execution):**
 ```
 Tier A Verification: 14/14 (100.0%)
 
@@ -60,13 +60,13 @@ Tier A Verification: 14/14 (100.0%)
 5    PASS     field_exists   classification.confidence           Found: classification.confidence
 6    PASS     field_exists   classification.reasoning            Found: classification.reasoning
 7    PASS     field_exists   classification.keywords             Found: classification.keywords
-8    PASS     one_of         classification.category             category = 'bug', valid set matched
-9    PASS     one_of         classification.urgency              urgency = 'high', valid set matched
-10   PASS     range          classification.confidence           0.95 in [0.0, 1.0]
-11   PASS     is_type        classification.confidence           float confirmed
-12   PASS     is_type        classification.keywords             list confirmed
-13   PASS     not_empty      classification.reasoning            Non-empty string
-14   PASS     not_empty      classification.keywords             8 items
+8    PASS     one_of         classification.category             classification.category = 'bug', valid: ['bug', 'feature_request', 'how_to', 'billing', 'account', 'other']
+9    PASS     one_of         classification.urgency              classification.urgency = 'high', valid: ['critical', 'high', 'medium', 'low']
+10   PASS     range          classification.confidence           classification.confidence = 0.95, range [0.0, 1.0]
+11   PASS     is_type        classification.confidence           classification.confidence: type=float, expected=float
+12   PASS     is_type        classification.keywords             classification.keywords: type=list, expected=list
+13   PASS     not_empty      classification.reasoning            classification.reasoning = 'A previously working export feature is now silently failing across multiple browsers for a paying Pro user, blocking data access workflows.'
+14   PASS     not_empty      classification.keywords             classification.keywords = ['export', 'CSV', 'spinner', 'no download', 'dashboard', 'Chrome', 'Firefox', 'regression']
 ```
 
 **Result:** 14/14 Tier A assertions PASS. Exit code 0.

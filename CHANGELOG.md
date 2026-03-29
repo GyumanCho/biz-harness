@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.5.0] - 2026-03-29
+
+### Added
+- **`tools/convert_golden.py`** — Golden output → verify_tier_a.py assertion
+  format converter. Bridges the two-format gap. Supports `--agent` filter and
+  `-o` file output. Extracts embedded `tier_a_assertions_file` sections.
+- **`tools/requirements.txt`** — PyYAML dependency declaration.
+
+### Fixed
+- `verify_tier_a.py` now catches assertion file parse errors (was unhandled crash).
+- `verify_tier_a.py` validates assertion file has `assertions` key.
+- `execution-trace-example.md` Step 3 output replaced with verbatim script output
+  (was paraphrased, misrepresenting provenance).
+- README.md golden output count corrected: 5 → 7.
+- team-examples.md headers updated from v1.3.0 to v1.4.0.
+
+### Changed
+- Full pipeline now works: golden output → `convert_golden.py` → assertion YAML
+  → `verify_tier_a.py` → pass/fail report. No manual format translation needed.
+
 ## [1.4.0] - 2026-03-29
 
 ### Added

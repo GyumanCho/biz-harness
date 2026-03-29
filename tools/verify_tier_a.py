@@ -175,7 +175,28 @@ def run_verification(output_path: str, assertions_path: str) -> dict:
             "results": [],
         }
 
-    spec = load_yaml(assertions_path)
+    try:
+        spec = load_yaml(assertions_path)
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": f"Failed to parse assertions YAML: {e}",
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "results": [],
+        }
+
+    if not isinstance(spec, dict) or "assertions" not in spec:
+        return {
+            "status": "error",
+            "error": "Assertions file must contain an 'assertions' key with a list",
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "results": [],
+        }
+
     assertions = spec.get("assertions", [])
 
     results = [check_assertion(data, a) for a in assertions]

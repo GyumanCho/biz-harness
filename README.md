@@ -79,7 +79,7 @@ Score Card always shows both tiers so you know exactly what's machine-verified.
 | `improvement-playbook.md` | Axis-specific strategies, report template |
 | `orchestrator-templates.md` | Templates for all 6 patterns |
 | `team-examples.md` | 2 complete teams with assertion-based score breakdowns |
-| `golden-outputs/` | 5 pre-verified expected outputs (1 per domain) |
+| `golden-outputs/` | 7 verified expected outputs (5 happy + 1 edge + 1 failure) |
 
 ## Requirements
 
