@@ -1,7 +1,7 @@
 {
   "name": "biz-harness",
   "version": "1.5.0",
-  "description": "Business use-case driven agent team generator with tiered QA assertions and adversarial review",
+  "description": "비즈니스 유스케이스 → 에이전트 팀 생성기. 6단계 워크플로우(도메인 발견→유스케이스 매핑→팀 설계→QA 시나리오→실증 검증→개선 루프), Tier A 기계검증 + Tier B LLM판단 + 적대적 리뷰의 3계층 QA, Quick/Standard/Full 비용 모드, 5도메인×4유스케이스 + golden output 내장.",
   "author": {
     "name": "GyumanCho",
     "email": "gmcho@fimasia.co.kr"

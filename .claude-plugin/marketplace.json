@@ -6,7 +6,7 @@
     "url": "https://github.com/GyumanCho"
   },
   "metadata": {
-    "description": "Business use-case driven agent team generators with tiered QA assertions"
+    "description": "비즈니스 유스케이스 기반 에이전트 팀 생성기 — 6단계 워크플로우, Tier A/B 계층 QA, 적대적 리뷰, Quick/Standard/Full 비용 모드"
   },
   "plugins": [
     {
@@ -15,7 +15,7 @@
         "source": "github",
         "repo": "GyumanCho/biz-harness"
       },
-      "description": "Business use-case driven agent team generator with tiered QA assertions and adversarial review",
+      "description": "비즈니스 유스케이스 → 검증된 에이전트 팀. 6단계 워크플로우 + Tier A(기계검증)/Tier B(LLM판단) 분리 스코어링 + 적대적 리뷰어 + Quick/Standard/Full 비용 모드 + 5도메인×4유스케이스 골든 출력 내장",
       "version": "1.5.0",
       "category": "agent-teams",
       "tags": [
