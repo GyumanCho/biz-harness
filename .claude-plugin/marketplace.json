@@ -5,10 +5,16 @@
     "email": "gmcho@fimasia.co.kr",
     "url": "https://github.com/GyumanCho"
   },
+  "metadata": {
+    "description": "Business use-case driven agent team generators with tiered QA assertions"
+  },
   "plugins": [
     {
       "name": "biz-harness",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "GyumanCho/biz-harness"
+      },
       "description": "Business use-case driven agent team generator with tiered QA assertions and adversarial review",
       "version": "1.5.0",
       "category": "agent-teams",
