@@ -28,7 +28,16 @@ Domain → Use Cases → Agent Team → Tiered QA → Improvement Loop → Valid
 ## Installation
 
 ```bash
-claude plugin install /path/to/biz-harness
+# 1) Register the marketplace
+claude plugin marketplace add GyumanCho/biz-harness
+
+# 2) Install the plugin
+claude plugin install biz-harness@biz-harness
+```
+
+For local development:
+```bash
+claude --plugin-dir /path/to/biz-harness
 ```
 
 ## Usage

@@ -1,15 +1,25 @@
 {
-  "title": "BizHarness - Business Use-Case Agent Team Generator",
-  "tagline": "From business use cases to validated agent teams with QA scoring",
-  "category": "agent-teams",
-  "icon": "briefcase",
-  "tags": [
-    "agent-teams",
-    "business-automation",
-    "qa-validation",
-    "use-case-driven"
-  ],
-  "compatibility": {
-    "claude-code": ">=1.0.0"
-  }
+  "name": "biz-harness",
+  "owner": {
+    "name": "GyumanCho",
+    "email": "gmcho@fimasia.co.kr",
+    "url": "https://github.com/GyumanCho"
+  },
+  "plugins": [
+    {
+      "name": "biz-harness",
+      "source": ".",
+      "description": "Business use-case driven agent team generator with tiered QA assertions and adversarial review",
+      "version": "1.5.0",
+      "category": "agent-teams",
+      "tags": [
+        "agent-teams",
+        "business-automation",
+        "qa-validation",
+        "use-case-driven"
+      ],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/GyumanCho/biz-harness"
+    }
+  ]
 }

@@ -27,7 +27,16 @@ BizHarness는 비즈니스 도메인 → 유스케이스 선택 → 에이전트
 ## 설치
 
 ```bash
-claude plugin install /path/to/biz-harness
+# 1) 마켓플레이스 등록
+claude plugin marketplace add GyumanCho/biz-harness
+
+# 2) 플러그인 설치
+claude plugin install biz-harness@biz-harness
+```
+
+로컬 개발용:
+```bash
+claude --plugin-dir /path/to/biz-harness
 ```
 
 ## 사용법
